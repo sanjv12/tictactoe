@@ -119,6 +119,6 @@ input[type="text"] {
 }
 .trybtn{
     /* margin-left: 40%; */
-    padding-left: 680px;
+      text-align: center;
 
 }
