@@ -1,6 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import random
+
 app = Flask(__name__, static_url_path='/static')
+app.secret_key = 'your_secret_key_here'
+
 emptboard = [''] * 9
 board = [''] * 9
 current_player = 'X'
@@ -10,9 +13,25 @@ def r_loser_message():
     'congratulations - You are an idiot',
     'Losing like a pro – the world could use more examples like you!',
     'There is nothing worse than your DUMB Brain',
-    "Can't you see how pathetic your attacks are!","No matter how much you try, you still won't Win"
+    "Can't you see how pathetic your attacks are!",
+    "No matter how much you try, you still won't Win",
+    "In my ideal nation, there would exist no one as weak as you!",
+    "Come back when you've learned how to Play!"
     ]
     return "You Lost! "+random.choice(listofmsg)
+def r_Tie_message():
+    listofmsg=['Waste Fellow Go Jump inside any well',
+    'congratulations - You are an idiot',
+    'Losing like a pro – the world could use more examples like you!',
+    'There is nothing worse than your DUMB Brain',
+    "Can't you see how pathetic your attacks are!",
+    "No matter how much you try, you still won't Win",
+    "In my ideal nation, there would exist no one as weak as you!",
+    "Come back when you've learned how to Play!",
+    "East or West you're the worst",
+    "Pathetic", "You're Under my Gen"
+    ]
+    return "It's a Tie! "+random.choice(listofmsg)    
 def check_win(player):
     winning_combinations = [
         (0, 1, 2), (3, 4, 5), (6, 7, 8),  # Rows
@@ -54,14 +73,18 @@ def minimax(board, depth, is_maximizing):
         return min_eval
 @app.route('/')
 def index():
-    global user_started, board
-    if not user_started:
-        board = [''] * 9  # Reset the board
-        return render_template('start.html') #1
-    return render_template('index.html', board=board, message="")
+    if 'user_started' not in session:
+        session['user_started'] = False
+        session['board'] = [''] * 9
+        session['current_player'] = 'X'
+
+    if not session['user_started']:
+        return render_template('start.html')
+    return render_template('index.html', board=session['board'], message="")
+
 @app.route('/loser_mess')
 def losermsg():
-    return render_template('start.html',message="Hello Loser! Click Below to Lose the game")
+    return render_template('start.html')
 @app.route('/start_game')
 def start_game():
     global user_started, board
@@ -71,17 +94,16 @@ def start_game():
 
 @app.route('/restart_game', methods=['POST'])
 def restart_game():
-    global user_started, board
-    user_started = True
-    board = [''] * 9
-    return redirect(url_for('index'))
+    session.clear()
+    return redirect(url_for('index', board='', message=''))
+
 
 @app.route('/make_move', methods=['GET'])
 def make_move():
     global current_player, user_started
     
     if not user_started:
-        return render_template('dummy.html',message="Click Reset Button you Loser!") #2
+        return redirect(url_for('index', board='', message='')) #2
     
     position = int(request.args.get('position'))
     
@@ -118,3 +140,4 @@ def make_move():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
